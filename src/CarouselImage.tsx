@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import type { Dimensions, ImageConfig } from "./types";
 
 
@@ -13,12 +14,60 @@ function bgWithOpacity(color: string, opacity: number): string {
   return color;
 }
 
-export function CarouselImage({ config, dimensions }: { config: ImageConfig; dimensions: Dimensions }) {
+export function CarouselImage({
+  config,
+  dimensions,
+  onTextMove,
+}: {
+  config: ImageConfig;
+  dimensions: Dimensions;
+  onTextMove?: (textId: string, x: number, y: number) => void;
+}) {
   const aspectRatio = `${dimensions.width} / ${dimensions.height}`;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{
+    textId: string;
+    startPointerX: number;
+    startPointerY: number;
+    startTextX: number;
+    startTextY: number;
+  } | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+
+  function handlePointerDown(e: React.PointerEvent, textId: string, textX: number, textY: number) {
+    if (!onTextMove) return;
+    e.preventDefault();
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    setDraggingId(textId);
+    dragRef.current = {
+      textId,
+      startPointerX: e.clientX,
+      startPointerY: e.clientY,
+      startTextX: textX,
+      startTextY: textY,
+    };
+  }
+
+  function handlePointerMove(e: React.PointerEvent) {
+    const drag = dragRef.current;
+    if (!drag || !containerRef.current || !onTextMove) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const dx = ((e.clientX - drag.startPointerX) / rect.width) * 100;
+    const dy = ((e.clientY - drag.startPointerY) / rect.height) * 100;
+    const x = Math.max(0, Math.min(100, drag.startTextX + dx));
+    const y = Math.max(0, Math.min(100, drag.startTextY + dy));
+    onTextMove(drag.textId, x, y);
+  }
+
+  function handlePointerUp() {
+    dragRef.current = null;
+    setDraggingId(null);
+  }
 
   return (
     <div className="carousel-preview-wrapper">
       <div
+        ref={containerRef}
         className="carousel-preview"
         style={{
           aspectRatio,
@@ -49,6 +98,9 @@ export function CarouselImage({ config, dimensions }: { config: ImageConfig; dim
         {config.texts.map((t) => (
           <div
             key={t.id}
+            onPointerDown={(e) => handlePointerDown(e, t.id, t.x, t.y)}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
             style={{
               position: "absolute",
               left: `${t.x}%`,
@@ -63,6 +115,8 @@ export function CarouselImage({ config, dimensions }: { config: ImageConfig; dim
               padding: "0.1em 0.3em",
               whiteSpace: "pre-wrap",
               boxSizing: "border-box",
+              cursor: onTextMove ? (draggingId === t.id ? "grabbing" : "grab") : undefined,
+              userSelect: draggingId ? "none" : undefined,
             }}
           >
             {t.text}

@@ -63,7 +63,18 @@ export function App() {
               config={slide}
               onChange={(updated) => updateSlide(slide.id, updated)}
             />
-            <CarouselImage config={slide} dimensions={dimensions} />
+            <CarouselImage
+              config={slide}
+              dimensions={dimensions}
+              onTextMove={(textId, x, y) => {
+                updateSlide(slide.id, {
+                  ...slide,
+                  texts: slide.texts.map((t) =>
+                    t.id === textId ? { ...t, x, y } : t
+                  ),
+                });
+              }}
+            />
           </div>
         </div>
       ))}
