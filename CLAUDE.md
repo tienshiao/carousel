@@ -104,3 +104,15 @@ bun --hot ./index.ts
 ```
 
 For more information, read the Bun API docs in `node_modules/bun-types/docs/**.mdx`.
+
+## Rendering Pipeline
+
+Both the live preview (`CarouselImage.tsx`) and PNG export (`exportSlides.ts`) share the same Canvas 2D rendering path in `renderSlide.ts`:
+
+1. `renderSlideToCanvas()` — orchestrates a single slide render: fills background color, draws the background image (with fit/position/zoom/blur), then draws each text overlay.
+2. `drawImageWithFit()` — draws a background image onto the canvas using the configured `ImageFit` mode (`cover`, `contain`, `fill`, `none`) with position and zoom transforms.
+3. `measureTextBox()` — computes box geometry (position, size, wrapped lines, padding) for a `TextConfig`. Used by both `drawText()` and `getTextBoxes()` to avoid duplicating measurement logic.
+4. `drawText()` — renders a text overlay with background rectangle and aligned wrapped text.
+5. `getTextBoxes()` — returns hit-test bounding boxes for all text overlays (used by `CarouselImage.tsx` for drag-to-move).
+
+The preview canvas in `CarouselImage.tsx` re-renders on every React render cycle via a `useEffect` with no dependency array. Export creates an offscreen canvas per slide and converts to PNG blobs via `canvas.toBlob()`.
