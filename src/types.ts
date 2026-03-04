@@ -10,6 +10,7 @@ export interface TextConfig {
   fontSize: number;
   backgroundColor: string;
   backgroundOpacity: number; // 0-1
+  width: number;             // percentage 0-100 of canvas width
   alignment: TextAlignment;
   x: number;
   y: number;
@@ -26,6 +27,7 @@ export interface ImageConfig {
   imageFit: ImageFit;
   imageX: number;       // 0-100, default 50 (center)
   imageY: number;       // 0-100, default 50 (center)
+  imageZoom: number;    // percentage, 100 = normal, default 100
   imageBlur: number;    // 0-20 px, default 0
   backgroundColor: string;
   texts: TextConfig[];

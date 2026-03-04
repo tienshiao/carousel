@@ -19,8 +19,9 @@ function makeDefaultText(): TextConfig {
     fontSize: 48,
     backgroundColor: "#000000",
     backgroundOpacity: 0.5,
+    width: 80,
     alignment: "center",
-    x: 50,
+    x: 10,
     y: 50,
   };
 }
@@ -105,6 +106,20 @@ export function CarouselImageConfig({
                   value={config.imageY}
                   onChange={(e) =>
                     onChange({ ...config, imageY: Number(e.target.value) })
+                  }
+                />
+              </label>
+            </div>
+            <div className="config-row">
+              <label style={{ flex: 1 }}>
+                Zoom ({config.imageZoom ?? 100}%)
+                <input
+                  type="range"
+                  min={50}
+                  max={300}
+                  value={config.imageZoom ?? 100}
+                  onChange={(e) =>
+                    onChange({ ...config, imageZoom: Number(e.target.value) })
                   }
                 />
               </label>
@@ -248,6 +263,21 @@ export function CarouselImageConfig({
                   <option value="center">Center</option>
                   <option value="right">Right</option>
                 </select>
+              </label>
+            </div>
+
+            <div className="config-row">
+              <label style={{ flex: 1 }}>
+                Width ({t.width ?? 80}%)
+                <input
+                  type="range"
+                  min={5}
+                  max={100}
+                  value={t.width ?? 80}
+                  onChange={(e) =>
+                    updateText(t.id, { width: Number(e.target.value) })
+                  }
+                />
               </label>
             </div>
 

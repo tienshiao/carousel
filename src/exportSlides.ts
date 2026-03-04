@@ -23,78 +23,89 @@ function drawImageWithFit(
   fit: ImageFit,
   imageX: number = 50,
   imageY: number = 50,
+  imageZoom: number = 100,
 ) {
-  let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
+  const sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
   let dx = 0, dy = 0, dw = cw, dh = ch;
+  const zoom = imageZoom / 100;
 
   // Convert 0-100 percentage to 0-1 factor
   const fx = imageX / 100;
   const fy = imageY / 100;
 
   if (fit === "fill") {
-    // stretch to fill — position doesn't apply
+    dw = cw * zoom;
+    dh = ch * zoom;
   } else if (fit === "none") {
-    // draw at natural size, positioned by percentage
-    dw = sw;
-    dh = sh;
-    dx = (cw - dw) * fx;
-    dy = (ch - dh) * fy;
+    dw = sw * zoom;
+    dh = sh * zoom;
   } else if (fit === "cover") {
-    const scale = Math.max(cw / sw, ch / sh);
-    const scaledW = sw * scale;
-    const scaledH = sh * scale;
-    dx = (cw - scaledW) * fx;
-    dy = (ch - scaledH) * fy;
-    dw = scaledW;
-    dh = scaledH;
+    const scale = Math.max(cw / sw, ch / sh) * zoom;
+    dw = sw * scale;
+    dh = sh * scale;
   } else if (fit === "contain") {
-    const scale = Math.min(cw / sw, ch / sh);
-    const scaledW = sw * scale;
-    const scaledH = sh * scale;
-    dx = (cw - scaledW) * fx;
-    dy = (ch - scaledH) * fy;
-    dw = scaledW;
-    dh = scaledH;
+    const scale = Math.min(cw / sw, ch / sh) * zoom;
+    dw = sw * scale;
+    dh = sh * scale;
   }
+
+  dx = (cw - dw) * fx;
+  dy = (ch - dh) * fy;
 
   ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
 }
 
+function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+  const words = text.split(" ");
+  const lines: string[] = [];
+  let line = "";
+  for (const word of words) {
+    const test = line ? `${line} ${word}` : word;
+    if (ctx.measureText(test).width > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = test;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
 function drawText(ctx: CanvasRenderingContext2D, t: TextConfig, cw: number, ch: number) {
-  const x = (t.x / 100) * cw;
-  const y = (t.y / 100) * ch;
+  const boxX = (t.x / 100) * cw;
+  const boxY = (t.y / 100) * ch;
+  const boxW = ((t.width ?? 80) / 100) * cw;
   const fontSize = t.fontSize;
+  const padX = fontSize * 0.3;
+  const padY = fontSize * 0.1;
+  const lineHeight = fontSize * 1.3;
+
   ctx.font = `${fontSize}px "${t.font}", sans-serif`;
   ctx.textBaseline = "top";
 
-  const metrics = ctx.measureText(t.text);
-  const textW = metrics.width;
-  const textH = fontSize * 1.3; // approximate line height
-  const padX = fontSize * 0.3;
-  const padY = fontSize * 0.1;
-
-  let textX = x;
-  if (t.alignment === "center") textX = x - textW / 2;
-  else if (t.alignment === "right") textX = x - textW;
+  const lines = wrapText(ctx, t.text, boxW - padX * 2);
+  const textH = lines.length * lineHeight;
 
   // Draw background box
   const opacity = t.backgroundOpacity ?? 0.5;
   const rgb = hexToRgb(t.backgroundColor);
   if (rgb && opacity > 0) {
     ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
-    const boxX = textX - padX;
-    const boxY = y - padY;
-    const boxW = textW + padX * 2;
-    const boxH = textH + padY * 2;
-    const r = 4;
     ctx.beginPath();
-    ctx.roundRect(boxX, boxY, boxW, boxH, r);
+    ctx.roundRect(boxX, boxY, boxW, textH + padY * 2, 4);
     ctx.fill();
   }
 
-  // Draw text
+  // Draw text lines
   ctx.fillStyle = t.color;
-  ctx.fillText(t.text, textX, y);
+  for (let i = 0; i < lines.length; i++) {
+    const lineW = ctx.measureText(lines[i]!).width;
+    let lx = boxX + padX;
+    if (t.alignment === "center") lx = boxX + (boxW - lineW) / 2;
+    else if (t.alignment === "right") lx = boxX + boxW - padX - lineW;
+    ctx.fillText(lines[i]!, lx, boxY + padY + i * lineHeight);
+  }
 }
 
 async function renderSlide(
@@ -117,7 +128,7 @@ async function renderSlide(
     if (slide.imageBlur > 0) {
       ctx.filter = `blur(${slide.imageBlur}px)`;
     }
-    drawImageWithFit(ctx, img, cw, ch, slide.imageFit, slide.imageX, slide.imageY);
+    drawImageWithFit(ctx, img, cw, ch, slide.imageFit, slide.imageX, slide.imageY, slide.imageZoom);
     ctx.filter = "none";
   }
 

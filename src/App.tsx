@@ -18,6 +18,7 @@ function makeSlide(): ImageConfig {
     imageFit: "cover",
     imageX: 50,
     imageY: 50,
+    imageZoom: 100,
     imageBlur: 0,
     backgroundColor: "#1a1a2e",
     texts: [],

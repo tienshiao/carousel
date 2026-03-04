@@ -1,15 +1,5 @@
-import type { Dimensions, ImageConfig, TextConfig } from "./types";
+import type { Dimensions, ImageConfig } from "./types";
 
-function getTransformX(alignment: TextConfig["alignment"]): string {
-  switch (alignment) {
-    case "left":
-      return "translateX(0)";
-    case "center":
-      return "translateX(-50%)";
-    case "right":
-      return "translateX(-100%)";
-  }
-}
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
   const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -37,19 +27,25 @@ export function CarouselImage({ config, dimensions }: { config: ImageConfig; dim
           overflow: "hidden",
         }}
       >
-        {config.image && (
-          <div
-            style={{
-              position: "absolute",
-              inset: config.imageBlur > 0 ? `-${config.imageBlur * 2}px` : 0,
-              backgroundImage: `url(${config.image})`,
-              backgroundSize: config.imageFit === "fill" ? "100% 100%" : config.imageFit,
-              backgroundPosition: `${config.imageX}% ${config.imageY}%`,
-              backgroundRepeat: "no-repeat",
-              filter: config.imageBlur > 0 ? `blur(${config.imageBlur}px)` : undefined,
-            }}
-          />
-        )}
+        {config.image && (() => {
+          const zoom = (config.imageZoom ?? 100) / 100;
+          const blurPad = config.imageBlur > 0 ? config.imageBlur * 2 : 0;
+          const extraPad = zoom > 1 ? `${((zoom - 1) / 2) * 100}%` : "0px";
+          return (
+            <div
+              style={{
+                position: "absolute",
+                inset: `calc(-${blurPad}px - ${extraPad})`,
+                backgroundImage: `url(${config.image})`,
+                backgroundSize: config.imageFit === "fill" ? "100% 100%" : config.imageFit,
+                backgroundPosition: `${config.imageX}% ${config.imageY}%`,
+                backgroundRepeat: "no-repeat",
+                transform: zoom !== 1 ? `scale(${zoom})` : undefined,
+                filter: config.imageBlur > 0 ? `blur(${config.imageBlur}px)` : undefined,
+              }}
+            />
+          );
+        })()}
         {config.texts.map((t) => (
           <div
             key={t.id}
@@ -57,15 +53,15 @@ export function CarouselImage({ config, dimensions }: { config: ImageConfig; dim
               position: "absolute",
               left: `${t.x}%`,
               top: `${t.y}%`,
-              transform: getTransformX(t.alignment),
+              width: `${t.width ?? 80}%`,
               color: t.color,
               fontFamily: t.font,
               fontSize: `${t.fontSize}px`,
+              textAlign: t.alignment,
               backgroundColor: bgWithOpacity(t.backgroundColor, t.backgroundOpacity ?? 0.5),
               borderRadius: "4px",
               padding: "0.1em 0.3em",
               whiteSpace: "pre-wrap",
-              maxWidth: "100%",
               boxSizing: "border-box",
             }}
           >
