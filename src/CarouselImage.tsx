@@ -24,17 +24,16 @@ export function CarouselImage({
   } | null>(null);
   const [, setRedrawTick] = useState(0);
 
-  // ResizeObserver for scaling
+  // Scale preview to fit window height
   useEffect(() => {
-    const wrapper = wrapperRef.current;
-    if (!wrapper) return;
-    const ro = new ResizeObserver((entries) => {
-      const { width } = entries[0]!.contentRect;
-      setScale(Math.min(width / dimensions.width, 1));
-    });
-    ro.observe(wrapper);
-    return () => ro.disconnect();
-  }, [dimensions.width]);
+    function updateScale() {
+      const maxH = window.innerHeight - 40;
+      setScale(Math.min(maxH / dimensions.height, 1));
+    }
+    updateScale();
+    window.addEventListener("resize", updateScale);
+    return () => window.removeEventListener("resize", updateScale);
+  }, [dimensions.height]);
 
   // Load image when config.image changes
   useEffect(() => {
