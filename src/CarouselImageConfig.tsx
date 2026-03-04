@@ -283,10 +283,10 @@ export function CarouselImageConfig({
 
             <div className="config-row">
               <label style={{ flex: 1 }}>
-                X ({t.x}%)
+                X ({Math.round(t.x)}%)
                 <input
                   type="range"
-                  min={0}
+                  min={-100}
                   max={100}
                   value={t.x}
                   onChange={(e) =>

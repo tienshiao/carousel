@@ -54,7 +54,7 @@ export function CarouselImage({
     const rect = containerRef.current.getBoundingClientRect();
     const dx = ((e.clientX - drag.startPointerX) / rect.width) * 100;
     const dy = ((e.clientY - drag.startPointerY) / rect.height) * 100;
-    const x = Math.max(0, Math.min(100, drag.startTextX + dx));
+    const x = Math.min(100, drag.startTextX + dx);
     const y = Math.max(0, Math.min(100, drag.startTextY + dy));
     onTextMove(drag.textId, x, y);
   }
