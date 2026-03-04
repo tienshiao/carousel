@@ -26,6 +26,7 @@ function makeSlide(): ImageConfig {
 }
 
 export function App() {
+  const [projectName, setProjectName] = useState("carousel");
   const [dimensions, setDimensions] = useState<Dimensions>(defaultDimensions);
   const [slides, setSlides] = useState<ImageConfig[]>([makeSlide()]);
 
@@ -40,10 +41,13 @@ export function App() {
   return (
     <div className="carousel-outer">
       <GlobalConfig
+        projectName={projectName}
+        onProjectNameChange={setProjectName}
         dimensions={dimensions}
         onDimensionsChange={setDimensions}
         slides={slides}
         onImport={(data) => {
+          if (data.projectName) setProjectName(data.projectName);
           setDimensions(data.dimensions);
           setSlides(data.slides);
         }}

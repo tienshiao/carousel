@@ -9,8 +9,8 @@ const PRESETS = [
   { label: "YouTube", width: 1920, height: 1080 },
 ];
 
-function saveProject(dimensions: Dimensions, slides: ImageConfig[]) {
-  const json = JSON.stringify({ dimensions, slides }, null, 2);
+function saveProject(projectName: string, dimensions: Dimensions, slides: ImageConfig[]) {
+  const json = JSON.stringify({ projectName, dimensions, slides }, null, 2);
   const blob = new Blob([json], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -21,15 +21,19 @@ function saveProject(dimensions: Dimensions, slides: ImageConfig[]) {
 }
 
 export function GlobalConfig({
+  projectName,
+  onProjectNameChange,
   dimensions,
   onDimensionsChange,
   slides,
   onImport,
 }: {
+  projectName: string;
+  onProjectNameChange: (name: string) => void;
   dimensions: Dimensions;
   onDimensionsChange: (d: Dimensions) => void;
   slides: ImageConfig[];
-  onImport: (data: { dimensions: Dimensions; slides: ImageConfig[] }) => void;
+  onImport: (data: { projectName?: string; dimensions: Dimensions; slides: ImageConfig[] }) => void;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -55,6 +59,20 @@ export function GlobalConfig({
 
   return (
     <div className="carousel-config global-config">
+      <section>
+        <h2>Project</h2>
+        <div className="config-row">
+          <label style={{ flex: 1 }}>
+            Name
+            <input
+              type="text"
+              value={projectName}
+              onChange={(e) => onProjectNameChange(e.target.value)}
+              style={{ flex: 1 }}
+            />
+          </label>
+        </div>
+      </section>
       <section>
         <h2>Dimensions</h2>
         <div className="config-row">
@@ -97,11 +115,11 @@ export function GlobalConfig({
       </section>
       <button
         className="export-button"
-        onClick={() => exportSlides(slides, dimensions)}
+        onClick={() => exportSlides(slides, dimensions, projectName)}
       >
         Export All as PNG
       </button>
-      <button className="export-button" onClick={() => saveProject(dimensions, slides)}>
+      <button className="export-button" onClick={() => saveProject(projectName, dimensions, slides)}>
         Save Project
       </button>
       <button className="export-button" onClick={() => fileInputRef.current?.click()}>

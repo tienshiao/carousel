@@ -32,10 +32,11 @@ function downloadBlob(blob: Blob, filename: string) {
   URL.revokeObjectURL(url);
 }
 
-export async function exportSlides(slides: ImageConfig[], dimensions: Dimensions) {
+export async function exportSlides(slides: ImageConfig[], dimensions: Dimensions, projectName?: string) {
+  const prefix = projectName?.trim() || "slide";
   for (let i = 0; i < slides.length; i++) {
     const slide = slides[i]!;
     const blob = await renderSlide(slide, dimensions);
-    downloadBlob(blob, `slide-${i + 1}.png`);
+    downloadBlob(blob, `${prefix}-${i + 1}.png`);
   }
 }
