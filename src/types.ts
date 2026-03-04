@@ -24,6 +24,9 @@ export interface ImageConfig {
   id: string;
   image: string | null;
   imageFit: ImageFit;
+  imageX: number;       // 0-100, default 50 (center)
+  imageY: number;       // 0-100, default 50 (center)
+  imageBlur: number;    // 0-20 px, default 0
   backgroundColor: string;
   texts: TextConfig[];
 }

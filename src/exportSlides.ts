@@ -21,32 +21,38 @@ function drawImageWithFit(
   cw: number,
   ch: number,
   fit: ImageFit,
+  imageX: number = 50,
+  imageY: number = 50,
 ) {
   let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
   let dx = 0, dy = 0, dw = cw, dh = ch;
 
+  // Convert 0-100 percentage to 0-1 factor
+  const fx = imageX / 100;
+  const fy = imageY / 100;
+
   if (fit === "fill") {
-    // stretch to fill
+    // stretch to fill — position doesn't apply
   } else if (fit === "none") {
-    // draw at natural size, centered
+    // draw at natural size, positioned by percentage
     dw = sw;
     dh = sh;
-    dx = (cw - dw) / 2;
-    dy = (ch - dh) / 2;
+    dx = (cw - dw) * fx;
+    dy = (ch - dh) * fy;
   } else if (fit === "cover") {
     const scale = Math.max(cw / sw, ch / sh);
     const scaledW = sw * scale;
     const scaledH = sh * scale;
-    dx = (cw - scaledW) / 2;
-    dy = (ch - scaledH) / 2;
+    dx = (cw - scaledW) * fx;
+    dy = (ch - scaledH) * fy;
     dw = scaledW;
     dh = scaledH;
   } else if (fit === "contain") {
     const scale = Math.min(cw / sw, ch / sh);
     const scaledW = sw * scale;
     const scaledH = sh * scale;
-    dx = (cw - scaledW) / 2;
-    dy = (ch - scaledH) / 2;
+    dx = (cw - scaledW) * fx;
+    dy = (ch - scaledH) * fy;
     dw = scaledW;
     dh = scaledH;
   }
@@ -108,7 +114,11 @@ async function renderSlide(
   // Background image
   if (slide.image) {
     const img = await loadImage(slide.image);
-    drawImageWithFit(ctx, img, cw, ch, slide.imageFit);
+    if (slide.imageBlur > 0) {
+      ctx.filter = `blur(${slide.imageBlur}px)`;
+    }
+    drawImageWithFit(ctx, img, cw, ch, slide.imageFit, slide.imageX, slide.imageY);
+    ctx.filter = "none";
   }
 
   // Text overlays

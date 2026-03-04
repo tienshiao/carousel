@@ -16,6 +16,9 @@ function makeSlide(): ImageConfig {
     id: crypto.randomUUID(),
     image: null,
     imageFit: "cover",
+    imageX: 50,
+    imageY: 50,
+    imageBlur: 0,
     backgroundColor: "#1a1a2e",
     texts: [],
   };

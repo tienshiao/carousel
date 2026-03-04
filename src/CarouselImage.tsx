@@ -33,12 +33,23 @@ export function CarouselImage({ config, dimensions }: { config: ImageConfig; dim
         style={{
           aspectRatio,
           backgroundColor: config.backgroundColor,
-          backgroundImage: config.image ? `url(${config.image})` : undefined,
-          backgroundSize: config.imageFit === "fill" ? "100% 100%" : config.imageFit,
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
+          position: "relative",
+          overflow: "hidden",
         }}
       >
+        {config.image && (
+          <div
+            style={{
+              position: "absolute",
+              inset: config.imageBlur > 0 ? `-${config.imageBlur * 2}px` : 0,
+              backgroundImage: `url(${config.image})`,
+              backgroundSize: config.imageFit === "fill" ? "100% 100%" : config.imageFit,
+              backgroundPosition: `${config.imageX}% ${config.imageY}%`,
+              backgroundRepeat: "no-repeat",
+              filter: config.imageBlur > 0 ? `blur(${config.imageBlur}px)` : undefined,
+            }}
+          />
+        )}
         {config.texts.map((t) => (
           <div
             key={t.id}

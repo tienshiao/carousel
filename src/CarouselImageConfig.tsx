@@ -82,6 +82,49 @@ export function CarouselImageConfig({
               </label>
             </div>
             <div className="config-row">
+              <label style={{ flex: 1 }}>
+                X Position ({config.imageX}%)
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={config.imageX}
+                  onChange={(e) =>
+                    onChange({ ...config, imageX: Number(e.target.value) })
+                  }
+                />
+              </label>
+            </div>
+            <div className="config-row">
+              <label style={{ flex: 1 }}>
+                Y Position ({config.imageY}%)
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={config.imageY}
+                  onChange={(e) =>
+                    onChange({ ...config, imageY: Number(e.target.value) })
+                  }
+                />
+              </label>
+            </div>
+            <div className="config-row">
+              <label style={{ flex: 1 }}>
+                Blur ({config.imageBlur}px)
+                <input
+                  type="range"
+                  min={0}
+                  max={20}
+                  step={0.5}
+                  value={config.imageBlur}
+                  onChange={(e) =>
+                    onChange({ ...config, imageBlur: Number(e.target.value) })
+                  }
+                />
+              </label>
+            </div>
+            <div className="config-row">
               <button
                 className="danger"
                 onClick={() => onChange({ ...config, image: null })}
