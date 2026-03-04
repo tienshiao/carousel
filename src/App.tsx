@@ -3,8 +3,7 @@ import { CarouselImage } from "./CarouselImage";
 import { CarouselImageConfig } from "./CarouselImageConfig";
 import { GlobalConfig } from "./GlobalConfig";
 import type { Dimensions, ImageConfig } from "./types";
-import "./index.css";
-import "./carousel.css";
+import "./styles.css";
 
 const defaultDimensions: Dimensions = {
   width: 1080,

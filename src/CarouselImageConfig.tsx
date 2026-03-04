@@ -112,12 +112,12 @@ export function CarouselImageConfig({
             </div>
             <div className="config-row">
               <label style={{ flex: 1 }}>
-                Zoom ({config.imageZoom ?? 100}%)
+                Zoom ({config.imageZoom}%)
                 <input
                   type="range"
                   min={50}
                   max={300}
-                  value={config.imageZoom ?? 100}
+                  value={config.imageZoom}
                   onChange={(e) =>
                     onChange({ ...config, imageZoom: Number(e.target.value) })
                   }
@@ -206,13 +206,13 @@ export function CarouselImageConfig({
 
             <div className="config-row">
               <label style={{ flex: 1 }}>
-                BG Opacity ({Math.round((t.backgroundOpacity ?? 0.5) * 100)}%)
+                BG Opacity ({Math.round(t.backgroundOpacity * 100)}%)
                 <input
                   type="range"
                   min={0}
                   max={1}
                   step={0.01}
-                  value={t.backgroundOpacity ?? 0.5}
+                  value={t.backgroundOpacity}
                   onChange={(e) =>
                     updateText(t.id, { backgroundOpacity: Number(e.target.value) })
                   }
@@ -268,12 +268,12 @@ export function CarouselImageConfig({
 
             <div className="config-row">
               <label style={{ flex: 1 }}>
-                Width ({t.width ?? 80}%)
+                Width ({t.width}%)
                 <input
                   type="range"
                   min={5}
                   max={100}
-                  value={t.width ?? 80}
+                  value={t.width}
                   onChange={(e) =>
                     updateText(t.id, { width: Number(e.target.value) })
                   }

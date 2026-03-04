@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import type { Dimensions, ImageConfig } from "./types";
-import { exportSlides } from "./exportSlides";
+import { exportSlides, downloadBlob } from "./exportSlides";
 
 const PRESETS = [
   { label: "TikTok", width: 1080, height: 1920 },
@@ -12,12 +12,7 @@ const PRESETS = [
 function saveProject(projectName: string, dimensions: Dimensions, slides: ImageConfig[]) {
   const json = JSON.stringify({ projectName, dimensions, slides }, null, 2);
   const blob = new Blob([json], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "carousel-project.json";
-  a.click();
-  URL.revokeObjectURL(url);
+  downloadBlob(blob, "carousel-project.json");
 }
 
 export function GlobalConfig({

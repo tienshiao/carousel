@@ -1,21 +1,16 @@
-# bun-react-template
+# Carousel
 
-To install dependencies:
+A web-based carousel/slide designer for creating image slides with text overlays.
+
+## Getting Started
 
 ```bash
 bun install
-```
-
-To start a development server:
-
-```bash
 bun dev
 ```
 
-To run for production:
+## Production
 
 ```bash
 bun start
 ```
-
-This project was created using `bun init` in bun v1.3.6. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
