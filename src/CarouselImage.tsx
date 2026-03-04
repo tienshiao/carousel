@@ -1,18 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import type { Dimensions, ImageConfig } from "./types";
-
-
-function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
-  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!m || !m[1] || !m[2] || !m[3]) return null;
-  return { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) };
-}
-
-function bgWithOpacity(color: string, opacity: number): string {
-  const rgb = hexToRgb(color);
-  if (rgb) return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
-  return color;
-}
+import { loadImage, renderSlideToCanvas, getTextBoxes } from "./renderSlide";
 
 export function CarouselImage({
   config,
@@ -24,8 +12,9 @@ export function CarouselImage({
   onTextMove?: (textId: string, x: number, y: number) => void;
 }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scale, setScale] = useState(1);
+  const imageRef = useRef<HTMLImageElement | null>(null);
   const dragRef = useRef<{
     textId: string;
     startPointerX: number;
@@ -33,8 +22,9 @@ export function CarouselImage({
     startTextX: number;
     startTextY: number;
   } | null>(null);
-  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [, setRedrawTick] = useState(0);
 
+  // ResizeObserver for scaling
   useEffect(() => {
     const wrapper = wrapperRef.current;
     if (!wrapper) return;
@@ -46,34 +36,111 @@ export function CarouselImage({
     return () => ro.disconnect();
   }, [dimensions.width]);
 
-  function handlePointerDown(e: React.PointerEvent, textId: string, textX: number, textY: number) {
+  // Load image when config.image changes
+  useEffect(() => {
+    if (!config.image) {
+      imageRef.current = null;
+      setRedrawTick((t) => t + 1);
+      return;
+    }
+    let cancelled = false;
+    loadImage(config.image).then((img) => {
+      if (!cancelled) {
+        imageRef.current = img;
+        setRedrawTick((t) => t + 1);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [config.image]);
+
+  // Canvas redraw
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    renderSlideToCanvas(ctx, config, dimensions, imageRef.current);
+  });
+
+  // Hit-test helper
+  const hitTest = useCallback(
+    (canvasX: number, canvasY: number): { textId: string; textX: number; textY: number } | null => {
+      const canvas = canvasRef.current;
+      if (!canvas) return null;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return null;
+      const boxes = getTextBoxes(ctx, config.texts, dimensions.width, dimensions.height);
+      // Reverse order so topmost (last rendered) is tested first
+      for (let i = boxes.length - 1; i >= 0; i--) {
+        const b = boxes[i]!;
+        if (canvasX >= b.x && canvasX <= b.x + b.w && canvasY >= b.y && canvasY <= b.y + b.h) {
+          const t = config.texts[i]!;
+          return { textId: b.id, textX: t.x, textY: t.y };
+        }
+      }
+      return null;
+    },
+    [config.texts, dimensions.width, dimensions.height],
+  );
+
+  // Convert pointer event to canvas coordinates
+  const toCanvasCoords = useCallback(
+    (e: React.PointerEvent) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return { x: 0, y: 0 };
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: (e.clientX - rect.left) / scale,
+        y: (e.clientY - rect.top) / scale,
+      };
+    },
+    [scale],
+  );
+
+  function handlePointerDown(e: React.PointerEvent) {
     if (!onTextMove) return;
+    const { x, y } = toCanvasCoords(e);
+    const hit = hitTest(x, y);
+    if (!hit) return;
     e.preventDefault();
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    setDraggingId(textId);
+    canvasRef.current?.setPointerCapture(e.pointerId);
     dragRef.current = {
-      textId,
+      textId: hit.textId,
       startPointerX: e.clientX,
       startPointerY: e.clientY,
-      startTextX: textX,
-      startTextY: textY,
+      startTextX: hit.textX,
+      startTextY: hit.textY,
     };
+    if (canvasRef.current) canvasRef.current.style.cursor = "grabbing";
   }
 
   function handlePointerMove(e: React.PointerEvent) {
     const drag = dragRef.current;
-    if (!drag || !containerRef.current || !onTextMove) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const dx = ((e.clientX - drag.startPointerX) / rect.width) * 100;
-    const dy = ((e.clientY - drag.startPointerY) / rect.height) * 100;
-    const x = Math.min(100, drag.startTextX + dx);
-    const y = Math.max(0, Math.min(100, drag.startTextY + dy));
-    onTextMove(drag.textId, x, y);
+    if (drag && onTextMove) {
+      // Dragging
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      const dx = ((e.clientX - drag.startPointerX) / rect.width) * 100;
+      const dy = ((e.clientY - drag.startPointerY) / rect.height) * 100;
+      const nx = Math.min(100, drag.startTextX + dx);
+      const ny = Math.max(0, Math.min(100, drag.startTextY + dy));
+      onTextMove(drag.textId, nx, ny);
+    } else if (onTextMove) {
+      // Hover cursor
+      const { x, y } = toCanvasCoords(e);
+      const hit = hitTest(x, y);
+      if (canvasRef.current) {
+        canvasRef.current.style.cursor = hit ? "grab" : "default";
+      }
+    }
   }
 
   function handlePointerUp() {
+    if (dragRef.current && canvasRef.current) {
+      canvasRef.current.style.cursor = "default";
+    }
     dragRef.current = null;
-    setDraggingId(null);
   }
 
   return (
@@ -85,67 +152,19 @@ export function CarouselImage({
           height: dimensions.height * scale,
         }}
       >
-        <div
-          ref={containerRef}
+        <canvas
+          ref={canvasRef}
+          width={dimensions.width}
+          height={dimensions.height}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
           style={{
-            width: dimensions.width,
-            height: dimensions.height,
+            display: "block",
             transform: `scale(${scale})`,
             transformOrigin: "top left",
-            backgroundColor: config.backgroundColor,
-            position: "absolute",
-            top: 0,
-            left: 0,
-            overflow: "hidden",
           }}
-        >
-          {config.image && (() => {
-            const zoom = (config.imageZoom ?? 100) / 100;
-            const blurPad = config.imageBlur > 0 ? config.imageBlur * 2 : 0;
-            return (
-              <div
-                style={{
-                  position: "absolute",
-                  inset: blurPad > 0 ? `-${blurPad}px` : 0,
-                  backgroundImage: `url(${config.image})`,
-                  backgroundSize: config.imageFit === "fill" ? "100% 100%" : config.imageFit,
-                  backgroundPosition: `${config.imageX}% ${config.imageY}%`,
-                  backgroundRepeat: "no-repeat",
-                  transform: zoom !== 1 ? `scale(${zoom})` : undefined,
-                  filter: config.imageBlur > 0 ? `blur(${config.imageBlur}px)` : undefined,
-                }}
-              />
-            );
-          })()}
-          {config.texts.map((t) => (
-            <div
-              key={t.id}
-              onPointerDown={(e) => handlePointerDown(e, t.id, t.x, t.y)}
-              onPointerMove={handlePointerMove}
-              onPointerUp={handlePointerUp}
-              style={{
-                position: "absolute",
-                left: `${t.x}%`,
-                top: `${t.y}%`,
-                width: `${t.width ?? 80}%`,
-                color: t.color,
-                fontFamily: `"${t.font}", sans-serif`,
-                fontSize: `${t.fontSize}px`,
-                lineHeight: 1.5,
-                textAlign: t.alignment,
-                backgroundColor: bgWithOpacity(t.backgroundColor, t.backgroundOpacity ?? 0.5),
-                borderRadius: "4px",
-                padding: "0.1em 0.3em",
-                whiteSpace: "pre-wrap",
-                boxSizing: "border-box",
-                cursor: onTextMove ? (draggingId === t.id ? "grabbing" : "grab") : undefined,
-                userSelect: draggingId ? "none" : undefined,
-              }}
-            >
-              {t.text}
-            </div>
-          ))}
-        </div>
+        />
       </div>
     </div>
   );
