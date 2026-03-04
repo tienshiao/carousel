@@ -25,34 +25,44 @@ function drawImageWithFit(
   imageY: number = 50,
   imageZoom: number = 100,
 ) {
-  const sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
-  let dx = 0, dy = 0, dw = cw, dh = ch;
+  const sw = img.naturalWidth, sh = img.naturalHeight;
   const zoom = imageZoom / 100;
-
-  // Convert 0-100 percentage to 0-1 factor
   const fx = imageX / 100;
   const fy = imageY / 100;
 
+  // Compute base image size (no zoom) — matches CSS backgroundSize
+  let dw = cw, dh = ch;
   if (fit === "fill") {
-    dw = cw * zoom;
-    dh = ch * zoom;
+    dw = cw;
+    dh = ch;
   } else if (fit === "none") {
-    dw = sw * zoom;
-    dh = sh * zoom;
+    dw = sw;
+    dh = sh;
   } else if (fit === "cover") {
-    const scale = Math.max(cw / sw, ch / sh) * zoom;
+    const scale = Math.max(cw / sw, ch / sh);
     dw = sw * scale;
     dh = sh * scale;
   } else if (fit === "contain") {
-    const scale = Math.min(cw / sw, ch / sh) * zoom;
+    const scale = Math.min(cw / sw, ch / sh);
     dw = sw * scale;
     dh = sh * scale;
   }
 
-  dx = (cw - dw) * fx;
-  dy = (ch - dh) * fy;
+  // Position within container — matches CSS backgroundPosition percentage
+  const dx = (cw - dw) * fx;
+  const dy = (ch - dh) * fy;
 
-  ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+  // Apply zoom as uniform scale from center — matches CSS transform: scale(zoom)
+  if (zoom !== 1) {
+    ctx.save();
+    ctx.translate(cw / 2, ch / 2);
+    ctx.scale(zoom, zoom);
+    ctx.translate(-cw / 2, -ch / 2);
+    ctx.drawImage(img, 0, 0, sw, sh, dx, dy, dw, dh);
+    ctx.restore();
+  } else {
+    ctx.drawImage(img, 0, 0, sw, sh, dx, dy, dw, dh);
+  }
 }
 
 function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
@@ -79,11 +89,12 @@ function drawText(ctx: CanvasRenderingContext2D, t: TextConfig, cw: number, ch: 
   const fontSize = t.fontSize;
   const padX = fontSize * 0.3;
   const padY = fontSize * 0.1;
-  const lineHeight = fontSize * 1.3;
+  const lineHeight = fontSize * 1.5;
 
   ctx.font = `${fontSize}px "${t.font}", sans-serif`;
   ctx.textBaseline = "top";
 
+  const halfLeading = (lineHeight - fontSize) / 2;
   const lines = wrapText(ctx, t.text, boxW - padX * 2);
   const textH = lines.length * lineHeight;
 
@@ -97,14 +108,14 @@ function drawText(ctx: CanvasRenderingContext2D, t: TextConfig, cw: number, ch: 
     ctx.fill();
   }
 
-  // Draw text lines
+  // Draw text lines — offset by half-leading to match CSS line-height centering
   ctx.fillStyle = t.color;
   for (let i = 0; i < lines.length; i++) {
     const lineW = ctx.measureText(lines[i]!).width;
     let lx = boxX + padX;
     if (t.alignment === "center") lx = boxX + (boxW - lineW) / 2;
     else if (t.alignment === "right") lx = boxX + boxW - padX - lineW;
-    ctx.fillText(lines[i]!, lx, boxY + padY + i * lineHeight);
+    ctx.fillText(lines[i]!, lx, boxY + padY + halfLeading + i * lineHeight);
   }
 }
 

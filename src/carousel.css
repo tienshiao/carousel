@@ -163,13 +163,11 @@
   min-width: 0;
 }
 
-.carousel-preview {
-  position: relative;
-  overflow: hidden;
-  height: 80vh;
-  max-width: 100%;
+.carousel-preview-sizer {
   border-radius: 12px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  position: relative;
 }
 
 .carousel-slide {
