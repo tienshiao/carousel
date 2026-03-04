@@ -39,7 +39,15 @@ export function App() {
 
   return (
     <div className="carousel-outer">
-      <GlobalConfig dimensions={dimensions} onDimensionsChange={setDimensions} slides={slides} />
+      <GlobalConfig
+        dimensions={dimensions}
+        onDimensionsChange={setDimensions}
+        slides={slides}
+        onImport={(data) => {
+          setDimensions(data.dimensions);
+          setSlides(data.slides);
+        }}
+      />
       {slides.map((slide, i) => (
         <div key={slide.id} className="carousel-slide">
           <div className="carousel-slide-header">
