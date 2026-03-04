@@ -50,6 +50,9 @@ export function drawImageWithFit(
   const dx = (cw - dw) * fx;
   const dy = (ch - dh) * fy;
 
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+
   if (zoom !== 1) {
     ctx.save();
     ctx.translate(cw / 2, ch / 2);
