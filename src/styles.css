@@ -43,11 +43,34 @@ body {
   width: 100%;
 }
 
-/* Global config overrides */
+/* Global config */
 .global-config {
-  flex: none;
-  max-height: none;
-  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.global-top-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.global-top-row section {
+  flex: 1;
+  min-width: 0;
+}
+
+.global-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.global-actions .export-button {
+  flex: 1;
+  text-align: center;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85em;
 }
 
 /* Shared button styles */
@@ -112,20 +135,23 @@ button.danger:hover {
   gap: 1.5rem;
 }
 
-.carousel-config h2 {
+.carousel-config h2,
+.global-config h2 {
   margin: 0 0 0.5rem;
   font-size: 1.1em;
   color: #fbf0df;
 }
 
-.carousel-config label {
+.carousel-config label,
+.global-config label {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9em;
 }
 
-.carousel-config section {
+.carousel-config section,
+.global-config section {
   background: #1a1a1a;
   padding: 1rem;
   border-radius: 12px;
@@ -134,7 +160,10 @@ button.danger:hover {
 
 .carousel-config input[type="text"],
 .carousel-config input[type="number"],
-.carousel-config select {
+.carousel-config select,
+.global-config input[type="text"],
+.global-config input[type="number"],
+.global-config select {
   background: #242424;
   color: #fbf0df;
   border: 1px solid #444;

@@ -53,7 +53,8 @@ export function GlobalConfig({
   }
 
   return (
-    <div className="carousel-config global-config">
+    <div className="global-config">
+      <div className="global-top-row">
       <section>
         <h2>Project</h2>
         <div className="config-row">
@@ -108,25 +109,28 @@ export function GlobalConfig({
           ))}
         </div>
       </section>
-      <button
-        className="export-button"
-        onClick={() => exportSlides(slides, dimensions, projectName)}
-      >
-        Export All as PNG
-      </button>
-      <button className="export-button" onClick={() => saveProject(projectName, dimensions, slides)}>
-        Save Project
-      </button>
-      <button className="export-button" onClick={() => fileInputRef.current?.click()}>
-        Load Project
-      </button>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".json"
-        style={{ display: "none" }}
-        onChange={handleFileChange}
-      />
+      </div>
+      <div className="global-actions">
+        <button
+          className="export-button"
+          onClick={() => exportSlides(slides, dimensions, projectName)}
+        >
+          Export PNG
+        </button>
+        <button className="export-button" onClick={() => saveProject(projectName, dimensions, slides)}>
+          Save
+        </button>
+        <button className="export-button" onClick={() => fileInputRef.current?.click()}>
+          Load
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json"
+          style={{ display: "none" }}
+          onChange={handleFileChange}
+        />
+      </div>
     </div>
   );
 }
