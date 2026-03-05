@@ -23,6 +23,7 @@ function makeDefaultText(): TextConfig {
     alignment: "center",
     x: 10,
     y: 50,
+    rotation: 0,
   };
 }
 
@@ -306,6 +307,21 @@ export function CarouselImageConfig({
                   value={t.y}
                   onChange={(e) =>
                     updateText(t.id, { y: Number(e.target.value) })
+                  }
+                />
+              </label>
+            </div>
+
+            <div className="config-row">
+              <label style={{ flex: 1 }}>
+                Rotation ({t.rotation}°)
+                <input
+                  type="range"
+                  min={-180}
+                  max={180}
+                  value={t.rotation}
+                  onChange={(e) =>
+                    updateText(t.id, { rotation: Number(e.target.value) })
                   }
                 />
               </label>

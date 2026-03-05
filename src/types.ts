@@ -14,6 +14,7 @@ export interface TextConfig {
   alignment: TextAlignment;
   x: number;
   y: number;
+  rotation: number; // degrees, default 0
 }
 
 export interface Dimensions {

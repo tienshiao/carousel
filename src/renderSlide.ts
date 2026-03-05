@@ -113,7 +113,17 @@ function measureTextBox(ctx: CanvasRenderingContext2D, t: TextConfig, cw: number
 
 export function drawText(ctx: CanvasRenderingContext2D, t: TextConfig, cw: number, ch: number) {
   const m = measureTextBox(ctx, t, cw, ch);
+  ctx.save();
   ctx.textBaseline = "top";
+
+  // Rotate around the center of the text box
+  if (t.rotation) {
+    const cx = m.boxX + m.boxW / 2;
+    const cy = m.boxY + m.boxH / 2;
+    ctx.translate(cx, cy);
+    ctx.rotate((t.rotation * Math.PI) / 180);
+    ctx.translate(-cx, -cy);
+  }
 
   const rgb = hexToRgb(t.backgroundColor);
   if (rgb && t.backgroundOpacity > 0) {
@@ -131,6 +141,7 @@ export function drawText(ctx: CanvasRenderingContext2D, t: TextConfig, cw: numbe
     else if (t.alignment === "right") lx = m.boxX + m.boxW - m.padX - lineW;
     ctx.fillText(m.lines[i]!, lx, m.boxY + m.padY + m.halfLeading + i * m.lineHeight);
   }
+  ctx.restore();
 }
 
 export interface TextBox {
@@ -139,6 +150,7 @@ export interface TextBox {
   y: number;
   w: number;
   h: number;
+  rotation: number;
 }
 
 export function getTextBoxes(
@@ -149,7 +161,7 @@ export function getTextBoxes(
 ): TextBox[] {
   return texts.map((t) => {
     const m = measureTextBox(ctx, t, cw, ch);
-    return { id: t.id, x: m.boxX, y: m.boxY, w: m.boxW, h: m.boxH };
+    return { id: t.id, x: m.boxX, y: m.boxY, w: m.boxW, h: m.boxH, rotation: t.rotation };
   });
 }
 

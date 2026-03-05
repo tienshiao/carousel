@@ -72,7 +72,20 @@ export function CarouselImage({
       // Reverse order so topmost (last rendered) is tested first
       for (let i = boxes.length - 1; i >= 0; i--) {
         const b = boxes[i]!;
-        if (canvasX >= b.x && canvasX <= b.x + b.w && canvasY >= b.y && canvasY <= b.y + b.h) {
+        // Transform click point into the box's local coordinate space (un-rotate around box center)
+        let lx = canvasX, ly = canvasY;
+        if (b.rotation) {
+          const cx = b.x + b.w / 2;
+          const cy = b.y + b.h / 2;
+          const angle = (-b.rotation * Math.PI) / 180;
+          const cos = Math.cos(angle);
+          const sin = Math.sin(angle);
+          const dx = canvasX - cx;
+          const dy = canvasY - cy;
+          lx = cx + dx * cos - dy * sin;
+          ly = cy + dx * sin + dy * cos;
+        }
+        if (lx >= b.x && lx <= b.x + b.w && ly >= b.y && ly <= b.y + b.h) {
           const t = config.texts[i]!;
           return { textId: b.id, textX: t.x, textY: t.y };
         }
