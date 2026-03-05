@@ -6,10 +6,12 @@ export function CarouselImage({
   config,
   dimensions,
   onTextMove,
+  onImageDrop,
 }: {
   config: ImageConfig;
   dimensions: Dimensions;
   onTextMove?: (textId: string, x: number, y: number) => void;
+  onImageDrop?: (dataUrl: string) => void;
 }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -23,6 +25,7 @@ export function CarouselImage({
     startTextY: number;
   } | null>(null);
   const [, setRedrawTick] = useState(0);
+  const [dragOver, setDragOver] = useState(false);
 
   // Scale preview to fit window height
   useEffect(() => {
@@ -156,9 +159,28 @@ export function CarouselImage({
   }
 
   return (
-    <div ref={wrapperRef} className="carousel-preview-wrapper">
+    <div
+      ref={wrapperRef}
+      className="carousel-preview-wrapper"
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDragOver(true);
+      }}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setDragOver(false);
+        const file = e.dataTransfer.files[0];
+        if (!file?.type.startsWith("image/")) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === "string") onImageDrop?.(reader.result);
+        };
+        reader.readAsDataURL(file);
+      }}
+    >
       <div
-        className="carousel-preview-sizer"
+        className={`carousel-preview-sizer${dragOver ? " drop-active" : ""}`}
         style={{
           width: dimensions.width * scale,
           height: dimensions.height * scale,

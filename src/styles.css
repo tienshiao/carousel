@@ -243,6 +243,12 @@ button.danger:hover {
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
   overflow: hidden;
   position: relative;
+  outline: 3px solid transparent;
+  transition: outline-color 0.15s ease;
+}
+
+.carousel-preview-sizer.drop-active {
+  outline-color: #4dabf7;
 }
 
 /* Slide cards */

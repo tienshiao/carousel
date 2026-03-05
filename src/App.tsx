@@ -69,6 +69,9 @@ export function App() {
             <CarouselImage
               config={slide}
               dimensions={dimensions}
+              onImageDrop={(dataUrl) => {
+                updateSlide(slide.id, { ...slide, image: dataUrl });
+              }}
               onTextMove={(textId, x, y) => {
                 updateSlide(slide.id, {
                   ...slide,
